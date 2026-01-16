@@ -1,21 +1,27 @@
 'use client'
 import Link from 'next/link'
 import { Logo } from '@/components/logos/logo'
-import { Menu, X } from 'lucide-react'
+import { LogOut, Menu, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import React from 'react'
 import { cn } from '@/lib/utils'
+import { useRouter } from "next/navigation";
+import { signOut } from "@/lib/actions/auth-actions";
 
 const menuItems = [
-    { name: 'Features', href: '#link' },
-    { name: 'Solution', href: '#link' },
-    { name: 'Pricing', href: '#link' },
+    { name: 'Products', href: '#link' }, 
     { name: 'About', href: '#link' },
 ]
 
-export const HeroHeader = () => {
+interface HeroHeaderClientProps {
+    session: any 
+}
+
+
+export const HeroHeaderClient = ({ session }: HeroHeaderClientProps) => {
     const [menuState, setMenuState] = React.useState(false)
     const [isScrolled, setIsScrolled] = React.useState(false)
+     const router = useRouter();
 
     React.useEffect(() => {
         const handleScroll = () => {
@@ -24,6 +30,12 @@ export const HeroHeader = () => {
         window.addEventListener('scroll', handleScroll)
         return () => window.removeEventListener('scroll', handleScroll)
     }, [])
+        
+    const handleSignOut = async () => {
+        await signOut();
+        router.push("/login");
+    };
+
     return (
         <header>
             <nav
@@ -41,7 +53,7 @@ export const HeroHeader = () => {
 
                             <button
                                 onClick={() => setMenuState(!menuState)}
-                                aria-label={menuState == true ? 'Close Menu' : 'Open Menu'}
+                                aria-label={menuState ? 'Close Menu' : 'Open Menu'}
                                 className="relative z-20 -m-2.5 -mr-4 block cursor-pointer p-2.5 lg:hidden">
                                 <Menu className="in-data-[state=active]:rotate-180 in-data-[state=active]:scale-0 in-data-[state=active]:opacity-0 m-auto size-6 duration-200" />
                                 <X className="in-data-[state=active]:rotate-0 in-data-[state=active]:scale-100 in-data-[state=active]:opacity-100 absolute inset-0 m-auto size-6 -rotate-180 scale-0 opacity-0 duration-200" />
@@ -77,31 +89,56 @@ export const HeroHeader = () => {
                                 </ul>
                             </div>
                             <div className="flex w-full flex-col space-y-3 sm:flex-row sm:gap-3 sm:space-y-0 md:w-fit">
-                                <Button
-                                    asChild
-                                    variant="outline"
-                                    size="sm"
-                                    className={cn(isScrolled && 'lg:hidden')}>
-                                    <Link href="#">
-                                        <span>Login</span>
-                                    </Link>
-                                </Button>
-                                <Button
-                                    asChild
-                                    size="sm"
-                                    className={cn(isScrolled && 'lg:hidden')}>
-                                    <Link href="#">
-                                        <span>Sign Up</span>
-                                    </Link>
-                                </Button>
-                                <Button
-                                    asChild
-                                    size="sm"
-                                    className={cn(isScrolled ? 'lg:inline-flex' : 'hidden')}>
-                                    <Link href="#">
-                                        <span>Get Started</span>
-                                    </Link>
-                                </Button>
+                                {!session ? (
+                                    <>
+                                        <Button
+                                            asChild
+                                            variant="outline"
+                                            size="sm"
+                                            className={cn(isScrolled && 'lg:hidden')}>
+                                            <Link href="/login">
+                                                <span>Login</span>
+                                            </Link>
+                                        </Button>
+                                        <Button
+                                            asChild
+                                            size="sm"
+                                            className={cn(isScrolled && 'lg:hidden')}>
+                                            <Link href="/signup">
+                                                <span>Sign Up</span>
+                                            </Link>
+                                        </Button>
+                                        <Button
+                                            asChild
+                                            size="sm"
+                                            className={cn(isScrolled ? 'lg:inline-flex' : 'hidden')}>
+                                            <Link href="/signup">
+                                                <span>Get Started</span>
+                                            </Link>
+                                        </Button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Button
+                                            asChild
+                                            variant="outline"
+                                            size="sm">
+                                            <Link href="/dashboard">
+                                                <span>Dashboard</span>
+                                            </Link>
+                                        </Button>
+
+                                        <Button 
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => {              
+                                                handleSignOut();
+                                            }}>
+                                            <LogOut className="h-4 w-4" />
+                                            <span>Sign Out</span>
+                                        </Button>
+                                    </>
+                                )}
                             </div>
                         </div>
                     </div>
