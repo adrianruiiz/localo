@@ -3,34 +3,19 @@ import Link from 'next/link'
 
 const links = [
     {
-        title: 'Features',
-        href: '#',
+        title: 'Home',
+        href: '/',
     },
     {
-        title: 'Solution',
+        title: 'Products',
         href: '#',
-    },
-    {
-        title: 'Customers',
-        href: '#',
-    },
-    {
-        title: 'Pricing',
-        href: '#',
-    },
-    {
-        title: 'Help',
-        href: '#',
-    },
-    {
-        title: 'About',
-        href: '#',
-    },
+    }
+     
 ]
 
 export default function FooterSection() {
     return (
-        <footer className="py-16 md:py-32">
+        <footer className="py-16 md:py-32 ">
             <div className="mx-auto max-w-5xl px-6">
                 <Link
                     href="/"

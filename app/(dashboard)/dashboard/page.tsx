@@ -11,7 +11,7 @@ export default async function DashboardHome() {
     headers: await headers()
   })
 
-  // Proteger la ruta - redirigir si no está autenticado
+  // PPPProteger la ruta - redirigir si no está autenticado
   if (!session) {
     redirect('/login')
   }

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { signUp, signInSocial } from "@/lib/actions/auth-actions";
+import { signUp, signInSocial, signIn } from "@/lib/actions/auth-actions";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
+import { LoadingOverlay } from "../ui/loading-overlay";
 
 export function SignupForm({
   className,
@@ -30,39 +31,25 @@ export function SignupForm({
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingTitle, setLoadingTitle] = useState("");
+  const [loadingDescription, setLoadingDescription] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
-
-  const handleSocialAuth = async (provider: "google" | "github") => {
-    setIsLoading(true);
-    setError("");
-
-    try {
-      await signInSocial(provider);
-    } catch (err) {
-      setError(
-        `Error authenticating with ${provider}: ${
-          err instanceof Error ? err.message : "Unknown error"
-        }`
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
+ 
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setLoadingTitle("Creating your account");
+    setLoadingDescription("Setting things up for you"); 
     setError("");
-
-    // Validate password match
+ 
     if (password !== confirmPassword) {
       setError("Passwords do not match");
       setIsLoading(false);
       return;
     }
-
-    // Validate password length
+ 
     if (password.length < 8) {
       setError("Password must be at least 8 characters long");
       setIsLoading(false);
@@ -75,6 +62,10 @@ export function SignupForm({
       if (!result.user) {
         setError("Failed to create account");
       }
+
+      await signIn(email, password);
+      router.push("/");
+
     } catch (err) {
       setError(
         `Authentication error: ${
@@ -87,6 +78,7 @@ export function SignupForm({
   };
 
   return (
+    <>
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
         <CardHeader className="text-center">
@@ -179,7 +171,7 @@ export function SignupForm({
                 </Button>
                 <FieldDescription className="text-center">
                   Already have an account? 
-                  <Link href="/auth/login" className="text-blue-500 hover:underline">
+                  <Link href="/login" className="text-blue-500 hover:underline">
                     Sign in
                   </Link>
                 </FieldDescription>
@@ -189,9 +181,17 @@ export function SignupForm({
         </CardContent>
       </Card>
       <FieldDescription className="px-6 text-center">
-        By clicking continue, you agree to our <a href="#">Terms of Service</a>{" "}
-        and <a href="#">Privacy Policy</a>.
+        By clicking continue, you agree to our <a href="/terms-of-service">Terms of Service</a>{" "}
+        and <a href="/privacy-policy">Privacy Policy</a>.
       </FieldDescription>
     </div>
-  );
-}
+    
+  <LoadingOverlay
+       open={isLoading}
+       title={loadingTitle}
+       description={loadingDescription}
+     />
+   </>
+ 
+ );
+ }

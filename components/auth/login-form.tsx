@@ -22,6 +22,7 @@ import {
   FieldSeparator,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { LoadingOverlay } from "../ui/loading-overlay";
 
 export function LoginForm({
   className,
@@ -30,29 +31,48 @@ export function LoginForm({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingTitle, setLoadingTitle] = useState("");
+  const [loadingDescription, setLoadingDescription] = useState("");
+
   const [error, setError] = useState("");
   const router = useRouter();
 
-  const handleSocialAuth = async (provider: "google" | "github") => {
-    setIsLoading(true);
-    setError("");
+const handleSocialAuth = async (provider: "google" | "github") => {
+  setIsLoading(true);
 
-    try {
-      await signInSocial(provider);
-    } catch (err) {
-      setError(
-        `Error authenticating with ${provider}: ${
-          err instanceof Error ? err.message : "Unknown error"
-        }`
-      );
-    } finally {
-      setIsLoading(false);
+  if (provider === "github") {
+    setLoadingTitle("Redirecting to GitHub");
+    setLoadingDescription("Waiting for authentication");
+  } else {
+    setLoadingTitle("Redirecting to Google");
+    setLoadingDescription("Waiting for authentication");
+  }
+
+  setError("");
+
+  try {
+    const { url } = await signInSocial(provider);
+
+    if (url) {
+      window.location.href = url;
     }
-  };
+  } catch (err) {
+    setIsLoading(false);
+    setError(
+      `Error authenticating with ${provider}: ${
+        err instanceof Error ? err.message : "Unknown error"
+      }`
+    );
+  }
+};
+
+
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setLoadingTitle("Signing you in");
+    setLoadingDescription("Redirecting to your dashboard"); 
     setError("");
 
     try {
@@ -61,18 +81,21 @@ export function LoginForm({
       if (!result.user) {
         setError("Invalid email or password");
       }
+
+      if (result.url) {
+      window.location.href = result.url;
+    }
     } catch (err) {
       setError(
         `Authentication error: ${
           err instanceof Error ? err.message : "Unknown error"
         }`
       );
-    } finally {
-      setIsLoading(false);
-    }
+    } 
   };
 
   return (
+    <> 
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
         <CardHeader className="text-center">
@@ -176,7 +199,7 @@ export function LoginForm({
                 </Button>
                 <FieldDescription className="text-center">
                   Don&apos;t have an account?{" "}
-                  <Link href="/auth/signup" className="text-blue-500 hover:underline">
+                  <Link href="/signup" className="text-blue-500 hover:underline">
                     Sign up
                   </Link>
                 </FieldDescription>
@@ -186,9 +209,17 @@ export function LoginForm({
         </CardContent>
       </Card>
       <FieldDescription className="px-6 text-center">
-        By clicking continue, you agree to our <a href="#">Terms of Service</a>{" "}
-        and <a href="#">Privacy Policy</a>.
+        By clicking continue, you agree to our <a href="/terms-of-service">Terms of Service</a>{" "}
+        and <a href="/privacy-policy">Privacy Policy</a>.
       </FieldDescription>
     </div>
-  );
+    
+    <LoadingOverlay
+      open={isLoading}
+      title={loadingTitle}
+      description={loadingDescription}
+    />
+  </>
+
+);
 }
